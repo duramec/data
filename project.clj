@@ -9,5 +9,5 @@
   :scala-version "2.10.2"
   :scala-test-paths ["test/scala"]
   :dependencies [[org.fressian/fressian "0.6.3"]
-                 [us.bpsm/edn-java "0.4.1"]])
+                 [us.bpsm/edn-java "0.4.2"]])
 
