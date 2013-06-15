@@ -71,35 +71,38 @@ class ConversionSuite extends FunSuite {
     roundTrip ("{1 2{2 3}4}")
   }
 
-  /*
   test ("can convert symbols") {
-    pending
+    roundTrip ("abc")
+    roundTrip ("abc/def")
   }
 
   test ("can convert keywords") {
-    pending
+    roundTrip (":keyword")
   }
 
   test ("can convert URIs") {
     pending
   }
 
-  test ("can convert Characters") {
-    pending
-  }
+  /*test ("can convert Characters") {
+    roundTrip ("\\a")
+    roundTrip ("\\A")
+  }*/
 
   test ("can convert Boolean") {
-    pending
+    roundTrip ("true")
+    roundTrip ("false")
   }
 
   test ("can convert String") {
-    pending
+    roundTrip ("\"this-is-a-string\"")
   }
 
   test ("can convert :nil") {
-    pending
+    roundTrip ("nil")
   }
 
+  /*
   test ("can convert Instant") {
     pending
   }
@@ -107,19 +110,7 @@ class ConversionSuite extends FunSuite {
   test ("can convert UUID") {
     pending
   }
-
-  test ("conversion") {
-    var bytes: Array[Byte] = EdnToFressian.convert("1")
-    println(FressianToEdn.convert(bytes))
-    bytes = EdnToFressian.convert("(1 2 3)")
-    println(FressianToEdn.convert(bytes))
-    bytes = EdnToFressian.convert("[1 2 3]")
-    println(FressianToEdn.convert(bytes))
-    bytes = EdnToFressian.convert("#{1 2 3}")
-    println(FressianToEdn.convert(bytes))
-    bytes = EdnToFressian.convert("{1 2 3 4}")
-    println(FressianToEdn.convert(bytes))
-  }*/
+  */
 
 }
 
