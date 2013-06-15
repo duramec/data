@@ -74,43 +74,54 @@ class ConversionSuite extends FunSuite {
   test ("can convert symbols") {
     roundTrip ("abc")
     roundTrip ("abc/def")
+    roundTrip ("abc-def/ghi-zyx")
   }
 
   test ("can convert keywords") {
     roundTrip (":keyword")
+    roundTrip (":extended-longer-keyword-test")
   }
 
   test ("can convert URIs") {
-    pending
+    roundTrip ("#uri \"http://www.example.com\"")
   }
 
-  /*test ("can convert Characters") {
-    roundTrip ("\\a")
-    roundTrip ("\\A")
-  }*/
+  test ("can convert characters") {
+    roundTrip ("""\a""")
+    roundTrip ("""\A""")
+    // \n, \r, \t are character literals and are not escaped.
+    roundTrip ("""\newline""")
+    roundTrip ("""\return""")
+    roundTrip ("""\tab""")
+    roundTrip ("""\space""")
+  }
 
-  test ("can convert Boolean") {
+  test ("can convert boolean") {
     roundTrip ("true")
     roundTrip ("false")
   }
 
-  test ("can convert String") {
-    roundTrip ("\"this-is-a-string\"")
+  test ("can convert string") {
+    roundTrip ("\"\"")
+    roundTrip (""""this-is-a-string"""")
   }
 
-  test ("can convert :nil") {
+  test ("can convert nil") {
     roundTrip ("nil")
   }
 
-  /*
   test ("can convert Instant") {
-    pending
+    roundTrip ("#inst\"2002-10-02T15:00:00.000-00:00\"")
   }
 
   test ("can convert UUID") {
+    roundTrip ("#uuid\"f4e9c4c4-d5d3-11e2-bdc4-00264a106cf2\"")
+  }
+  
+  test ("can convert Regex") {
+    //roundTrip ("""#"[a-z0-9]+"""")
     pending
   }
-  */
 
 }
 

@@ -8,6 +8,7 @@ import org.fressian.Writer;
 import us.bpsm.edn.Keyword;
 import us.bpsm.edn.Symbol;
 import us.bpsm.edn.parser.Parser;
+import us.bpsm.edn.parser.TagHandler;
 import us.bpsm.edn.parser.Parsers;
 import us.bpsm.edn.parser.Parseable;
 import us.bpsm.edn.parser.CollectionBuilder;
@@ -19,26 +20,41 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Collections;
 
+import us.bpsm.edn.Tag;
+import java.net.URI;
+
 @SuppressWarnings("rawtypes")
 public final class EdnToFressian {
 
+	static final Tag uriTag = Tag.newTag("uri");
+
+	static final CollectionBuilder.Factory createVectorFactory() {
+		return new CollectionBuilder.Factory() {
+			public CollectionBuilder builder() {
+				return new CollectionBuilder() {
+					ArrayList<Object> s = new ArrayList<Object>();
+
+					public void add(Object o) {
+						s.add(o);
+					}
+
+					public Object build() {
+						return s.toArray();
+					}
+				};
+			}
+		};
+	}
+
+	static final TagHandler uriTagHandler = new TagHandler() {
+		public Object transform(Tag tag, Object value) {
+			return URI.create((String) value);
+		}
+	};
+
 	static final Parser.Config config = Parsers.newParserConfigBuilder()
-			.setVectorFactory(new CollectionBuilder.Factory() {
-				public CollectionBuilder builder() {
-					return new CollectionBuilder() {
-						ArrayList<Object> s = new ArrayList<Object>();
-
-						public void add(Object o) {
-							s.add(o);
-						}
-
-						public Object build() {
-							return s.toArray();
-						}
-
-					};
-				}
-			}).build();
+			.setVectorFactory(createVectorFactory())
+			.putTagHandler(uriTag, uriTagHandler).build();
 
 	static final Map<String, WriteHandler> map(Object... keyvals) {
 		if (keyvals == null) {
@@ -74,12 +90,22 @@ public final class EdnToFressian {
 		}
 	};
 
+	static final WriteHandler characterHandler = new WriteHandler() {
+		public void write(Writer w, Object instance) throws IOException {
+			w.writeTag("char", 1);
+			char c = ((Character) instance).charValue();
+			w.writeInt(c);
+		}
+	};
+
 	static final Map<Class, Map<String, WriteHandler>> createHandlers() {
 		Map<Class, Map<String, WriteHandler>> handlers = new HashMap<Class, Map<String, WriteHandler>>();
 		final String keywordTag = "us.bspm.edn.Keyword";
 		final String symbolTag = "us.bpsm.edn.Symbol";
+		final String characterTag = "java.lang.Character";
 		handlers.put(Keyword.class, map(keywordTag, keywordHandler));
 		handlers.put(Symbol.class, map(symbolTag, symbolHandler));
+		handlers.put(Character.class, map(characterTag, characterHandler));
 		return Collections.unmodifiableMap(handlers);
 	}
 

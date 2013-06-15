@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
+import java.net.URI;
 
 public final class FressianToEdn {
 
@@ -45,10 +46,19 @@ public final class FressianToEdn {
 		}
 	};
 
+	static final Printer.Fn<URI> uriPrintFn = new Printer.Fn<URI>() {
+		@Override
+		public void eval(URI self, Printer writer) {
+			writer.append("#uri \"");
+			writer.append(self.toString());
+			writer.append("\"");
+		}
+	};
+
 	static final Protocol<Fn<?>> protocol = Printers.defaultProtocolBuilder()
 			.put(Object[].class, vectorPrintFn)
 			.put(List.class, listPrintFn)
-			.build();
+			.put(URI.class, uriPrintFn).build();
 
 	static final ReadHandler keywordHandler = new ReadHandler() {
 		public Object read(Reader r, Object tag, int componentCount)
@@ -68,12 +78,23 @@ public final class FressianToEdn {
 		}
 	};
 
+	static final ReadHandler characterHandler = new ReadHandler() {
+		public Object read(Reader r, Object tag, int componentCount)
+				throws IOException {
+			assert (componentCount == 1);
+			Integer codePoint = ((Long) (r.readInt())).intValue();
+			return (Character) Character.toChars(codePoint)[0];
+		}
+	};
+
 	static final Map<Object, ReadHandler> createHandlers() {
 		Map<Object, ReadHandler> handlers = new HashMap<Object, ReadHandler>();
 		final String keywordTag = "key";
 		final String symbolTag = "sym";
+		final String characterTag = "char";
 		handlers.put(keywordTag, keywordHandler);
 		handlers.put(symbolTag, symbolHandler);
+		handlers.put(characterTag, characterHandler);
 		return Collections.unmodifiableMap(handlers);
 	}
 
@@ -92,8 +113,7 @@ public final class FressianToEdn {
 		StringWriter sw = new StringWriter();
 		Printer ew = Printers.newPrinter(protocol, sw);
 		ew.printValue(readObject);
-		String res = sw.toString();
-		return res;
+		return sw.toString();
 	}
 
 }
