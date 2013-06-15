@@ -83,7 +83,7 @@ class ConversionSuite extends FunSuite {
   }
 
   test ("can convert URIs") {
-    roundTrip ("#uri \"http://www.example.com\"")
+    roundTrip ("#uri\"http://www.example.com\"")
   }
 
   test ("can convert characters") {

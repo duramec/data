@@ -49,7 +49,7 @@ public final class FressianToEdn {
 	static final Printer.Fn<URI> uriPrintFn = new Printer.Fn<URI>() {
 		@Override
 		public void eval(URI self, Printer writer) {
-			writer.append("#uri \"");
+			writer.append("#uri\"");
 			writer.append(self.toString());
 			writer.append("\"");
 		}
