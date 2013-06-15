@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.net.URI;
 
-public final class FressianToEdn {
+final class FressianToEdn {
 
 	static final Printer.Fn<Object[]> vectorPrintFn = new Printer.Fn<Object[]>() {
 		@Override
@@ -55,46 +55,47 @@ public final class FressianToEdn {
 		}
 	};
 
-	static final Protocol<Fn<?>> protocol = Printers.defaultProtocolBuilder()
-			.put(Object[].class, vectorPrintFn)
-			.put(List.class, listPrintFn)
-			.put(URI.class, uriPrintFn).build();
+	static Protocol<Fn<?>> createPrinterProtocol() {
+		return Printers.defaultProtocolBuilder()
+				.put(Object[].class, vectorPrintFn)
+				.put(List.class, listPrintFn)
+				.put(URI.class, uriPrintFn)
+				.build();
+	}
 
-	static final ReadHandler keywordHandler = new ReadHandler() {
-		public Object read(Reader r, Object tag, int componentCount)
-				throws IOException {
-			assert (componentCount == 2);
-			return Keyword.newKeyword((String) r.readObject(),
-					(String) r.readObject());
-		}
-	};
+	static final Protocol<Fn<?>> protocol = createPrinterProtocol();
 
-	static final ReadHandler symbolHandler = new ReadHandler() {
-		public Object read(Reader r, Object tag, int componentCount)
-				throws IOException {
-			assert (componentCount == 2);
-			return Symbol.newSymbol((String) r.readObject(),
-					(String) r.readObject());
-		}
-	};
+	static Map<Object, ReadHandler> createHandlers() {
 
-	static final ReadHandler characterHandler = new ReadHandler() {
-		public Object read(Reader r, Object tag, int componentCount)
-				throws IOException {
-			assert (componentCount == 1);
-			Integer codePoint = ((Long) (r.readInt())).intValue();
-			return (Character) Character.toChars(codePoint)[0];
-		}
-	};
-
-	static final Map<Object, ReadHandler> createHandlers() {
 		Map<Object, ReadHandler> handlers = new HashMap<Object, ReadHandler>();
-		final String keywordTag = "key";
-		final String symbolTag = "sym";
-		final String characterTag = "char";
-		handlers.put(keywordTag, keywordHandler);
-		handlers.put(symbolTag, symbolHandler);
-		handlers.put(characterTag, characterHandler);
+
+		handlers.put("key", new ReadHandler() {
+			public Object read(Reader r, Object tag, int componentCount)
+					throws IOException {
+				assert (componentCount == 2);
+				return Keyword.newKeyword((String) r.readObject(),
+						(String) r.readObject());
+			}
+		});
+
+		handlers.put("sym", new ReadHandler() {
+			public Object read(Reader r, Object tag, int componentCount)
+					throws IOException {
+				assert (componentCount == 2);
+				return Symbol.newSymbol((String) r.readObject(),
+						(String) r.readObject());
+			}
+		});
+
+		handlers.put("char", new ReadHandler() {
+			public Object read(Reader r, Object tag, int componentCount)
+					throws IOException {
+				assert (componentCount == 1);
+				Integer codePoint = ((Long) (r.readInt())).intValue();
+				return (Character) Character.toChars(codePoint)[0];
+			}
+		});
+
 		return Collections.unmodifiableMap(handlers);
 	}
 

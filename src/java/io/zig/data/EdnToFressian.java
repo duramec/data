@@ -24,7 +24,7 @@ import us.bpsm.edn.Tag;
 import java.net.URI;
 
 @SuppressWarnings("rawtypes")
-public final class EdnToFressian {
+final class EdnToFressian {
 
 	static final Tag uriTag = Tag.newTag("uri");
 
@@ -72,55 +72,51 @@ public final class EdnToFressian {
 		}
 	}
 
-	static final WriteHandler keywordHandler = new WriteHandler() {
-		public void write(Writer w, Object instance) throws IOException {
-			w.writeTag("key", 2);
-			Keyword keyWord = (Keyword) instance;
-			w.writeString(keyWord.getPrefix());
-			w.writeString(keyWord.getName());
-		}
-	};
-
-	static final WriteHandler symbolHandler = new WriteHandler() {
-		public void write(Writer w, Object instance) throws IOException {
-			w.writeTag("sym", 2);
-			Symbol symbol = (Symbol) instance;
-			w.writeString(symbol.getPrefix());
-			w.writeString(symbol.getName());
-		}
-	};
-
-	static final WriteHandler characterHandler = new WriteHandler() {
-		public void write(Writer w, Object instance) throws IOException {
-			w.writeTag("char", 1);
-			char c = ((Character) instance).charValue();
-			w.writeInt(c);
-		}
-	};
-
-	static final Map<Class, Map<String, WriteHandler>> createHandlers() {
+	static Map<Class, Map<String, WriteHandler>> createHandlers() {
 		Map<Class, Map<String, WriteHandler>> handlers = new HashMap<Class, Map<String, WriteHandler>>();
-		final String keywordTag = "us.bspm.edn.Keyword";
-		final String symbolTag = "us.bpsm.edn.Symbol";
-		final String characterTag = "java.lang.Character";
-		handlers.put(Keyword.class, map(keywordTag, keywordHandler));
-		handlers.put(Symbol.class, map(symbolTag, symbolHandler));
-		handlers.put(Character.class, map(characterTag, characterHandler));
+
+		handlers.put(Keyword.class,
+				map("us.bspm.edn.Keyword", new WriteHandler() {
+					public void write(Writer w, Object instance)
+							throws IOException {
+						w.writeTag("key", 2);
+						Keyword keyWord = (Keyword) instance;
+						w.writeString(keyWord.getPrefix());
+						w.writeString(keyWord.getName());
+					}
+				}));
+
+		handlers.put(Symbol.class,
+				map("us.bpsm.edn.Symbol", new WriteHandler() {
+					public void write(Writer w, Object instance)
+							throws IOException {
+						w.writeTag("sym", 2);
+						Symbol symbol = (Symbol) instance;
+						w.writeString(symbol.getPrefix());
+						w.writeString(symbol.getName());
+					}
+				}));
+
+		handlers.put(Character.class,
+				map("java.lang.Character", new WriteHandler() {
+					public void write(Writer w, Object instance)
+							throws IOException {
+						w.writeTag("char", 1);
+						char c = ((Character) instance).charValue();
+						w.writeInt(c);
+					}
+				}));
+
 		return Collections.unmodifiableMap(handlers);
-	}
+	};
 
-	static final ILookup<Class, Map<String, WriteHandler>> createLookup() {
-
+	static final ILookup<Class, Map<String, WriteHandler>> lookup = new ILookup<Class, Map<String, WriteHandler>>() {
 		final Map<Class, Map<String, WriteHandler>> handlers = createHandlers();
 
-		return new ILookup<Class, Map<String, WriteHandler>>() {
-			public Map<String, WriteHandler> valAt(Class key) {
-				return handlers.get(key);
-			}
-		};
-	}
-
-	static final ILookup<Class, Map<String, WriteHandler>> lookup = createLookup();
+		public Map<String, WriteHandler> valAt(Class key) {
+			return handlers.get(key);
+		}
+	};
 
 	public static final byte[] convert(String text) throws IOException {
 		Parseable edn = newParseable(text);
