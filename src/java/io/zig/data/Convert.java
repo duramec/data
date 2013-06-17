@@ -1,6 +1,7 @@
 package io.zig.data;
 
 import java.util.List;
+import java.util.ArrayList;
 import java.io.IOException;
 
 public final class Convert {
@@ -19,6 +20,12 @@ public final class Convert {
 		return Deserialize.toEdnFromObjects(objects);
 	}
 
+	public final static String objectToEdn(Object obj) throws IOException {
+		List<Object> objects = new ArrayList<Object>();
+		objects.add(obj);
+		return Deserialize.toEdnFromObjects(objects);
+	}
+
 	public final static byte[] ednToFressian(String edn) throws IOException {
 		return Serialize.toFressianFromEdn(edn);
 	}
@@ -28,7 +35,8 @@ public final class Convert {
 		return Serialize.toObjectsFromEdn(edn);
 	}
 
-	public final static byte[] objectsToFressian(List<Object> objects) throws IOException {
+	public final static byte[] objectsToFressian(List<Object> objects)
+			throws IOException {
 		return Serialize.toFressianFromObjects(objects);
 	}
 }
