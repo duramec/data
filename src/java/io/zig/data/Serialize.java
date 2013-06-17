@@ -15,6 +15,7 @@ import us.bpsm.edn.parser.CollectionBuilder;
 import static us.bpsm.edn.parser.Parsers.newParseable;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
@@ -24,7 +25,7 @@ import us.bpsm.edn.Tag;
 import java.net.URI;
 
 @SuppressWarnings("rawtypes")
-final class EdnToFressian {
+final class Serialize {
 
 	static final Tag uriTag = Tag.newTag("uri");
 
@@ -117,17 +118,30 @@ final class EdnToFressian {
 			return handlers.get(key);
 		}
 	};
-
-	public static final byte[] convert(String text) throws IOException {
+	
+	public static final List<Object> toObjectsFromEdn(String text) throws IOException {
 		Parseable edn = newParseable(text);
 		Parser parser = Parsers.newParser(config);
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		Writer fw = new FressianWriter(baos, lookup);
 		Object next = parser.nextValue(edn);
+		List<Object> objects = new ArrayList<Object>();
 		while (next != Parser.END_OF_INPUT) {
-			fw.writeObject(next);
+			objects.add(next);
 			next = parser.nextValue(edn);
 		}
+		return Collections.unmodifiableList(objects);
+	}
+	
+	public static final byte[] toFressianFromObjects(List<Object> objects) throws IOException {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		Writer fw = new FressianWriter(baos, lookup);
+		for (Object o: objects) {
+			fw.writeObject(o);
+		}
+		fw.writeFooter();
 		return baos.toByteArray();
+	}
+
+	public static final byte[] toFressianFromEdn(String text) throws IOException {
+		return toFressianFromObjects(toObjectsFromEdn(text));
 	}
 }

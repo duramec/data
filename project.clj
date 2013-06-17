@@ -1,4 +1,4 @@
-(defproject data "0.1.0"
+(defproject data "0.1.1"
   :description "tools for working with EDN in text and binary"
   :url "http://zig.io"
   :license {:name "Copyright 2013 Duramec LLC"

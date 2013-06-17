@@ -6,6 +6,7 @@ import org.fressian.Reader;
 import org.fressian.handlers.ReadHandler;
 
 import java.io.ByteArrayInputStream;
+import java.io.PushbackInputStream;
 import java.io.IOException;
 
 import java.io.StringWriter;
@@ -20,9 +21,10 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ArrayList;
 import java.net.URI;
 
-final class FressianToEdn {
+final class Deserialize {
 
 	static final Printer.Fn<Object[]> vectorPrintFn = new Printer.Fn<Object[]>() {
 		@Override
@@ -58,8 +60,7 @@ final class FressianToEdn {
 	static Protocol<Fn<?>> createPrinterProtocol() {
 		return Printers.defaultProtocolBuilder()
 				.put(Object[].class, vectorPrintFn)
-				.put(List.class, listPrintFn)
-				.put(URI.class, uriPrintFn)
+				.put(List.class, listPrintFn).put(URI.class, uriPrintFn)
 				.build();
 	}
 
@@ -107,14 +108,38 @@ final class FressianToEdn {
 		}
 	};
 
-	public static final String convert(byte[] bytes) throws IOException {
+	public static final List<Object> toObjectsFromFressian(byte[] bytes)
+			throws IOException {
+		List<Object> objects = new ArrayList<Object>();
 		ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-		Reader reader = new FressianReader(bais, lookup);
-		Object readObject = reader.readObject();
+		PushbackInputStream pb = new PushbackInputStream(bais);
+		Reader reader = new FressianReader(pb, lookup);
+		int token = 0;
+		boolean done = false;
+		while (!done) {
+			objects.add(reader.readObject());
+			token = pb.read();
+			if (token == 0xCF || token == -1) {
+				done = true;
+			}
+			pb.unread(token);
+		}
+		return Collections.unmodifiableList(objects);
+	}
+
+	public static final String toEdnFromObjects(List<Object> objects)
+			throws IOException {
 		StringWriter sw = new StringWriter();
 		Printer ew = Printers.newPrinter(protocol, sw);
-		ew.printValue(readObject);
+		for (Object o : objects) {
+			ew.printValue(o);
+		}
 		return sw.toString();
+	}
+
+	public static final String toEdnFromFressian(byte[] bytes)
+			throws IOException {
+		return toEdnFromObjects(toObjectsFromFressian(bytes));
 	}
 
 }

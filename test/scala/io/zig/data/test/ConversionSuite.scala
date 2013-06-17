@@ -6,13 +6,13 @@ import io.zig.data.Convert
 class ConversionSuite extends FunSuite {
 
   def roundTrip(s: String) {
-    val bytes = Convert.toBytes(s)
-    expectResult (s) { Convert.toEDN(bytes) }
+    val bytes = Convert.ednToFressian(s)
+    expectResult (s) { Convert.fressianToEdn(bytes) }
   }
 
   def roundTrip(s: String, alt: String) {
-    val bytes = Convert.toBytes(s)
-    expectResult (alt) { Convert.toEDN(bytes) }
+    val bytes = Convert.ednToFressian(s)
+    expectResult (alt) { Convert.fressianToEdn(bytes) }
   }
 
   test ("can convert integers") {
@@ -121,6 +121,12 @@ class ConversionSuite extends FunSuite {
   test ("can convert Regex") {
     //roundTrip ("""#"[a-z0-9]+"""")
     pending
+  }
+  
+  test ("can convert a sequence of un-enclosed values") {
+    roundTrip("1 2")
+    roundTrip("1 2 3")
+    roundTrip("1 2 3 nil")
   }
 
 }
