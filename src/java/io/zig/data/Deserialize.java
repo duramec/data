@@ -26,6 +26,8 @@ import java.net.URI;
 
 final class Deserialize {
 
+	static final int FooterToken = 0xCF;
+
 	static final Printer.Fn<Object[]> vectorPrintFn = new Printer.Fn<Object[]>() {
 		@Override
 		public void eval(Object[] self, Printer writer) {
@@ -119,7 +121,7 @@ final class Deserialize {
 		while (!done) {
 			objects.add(reader.readObject());
 			token = pb.read();
-			if (token == 0xCF || token == -1) {
+			if (token == FooterToken || token == -1) {
 				done = true;
 			} else {
 				pb.unread(token);
