@@ -121,8 +121,9 @@ final class Deserialize {
 			token = pb.read();
 			if (token == 0xCF || token == -1) {
 				done = true;
+			} else {
+				pb.unread(token);
 			}
-			pb.unread(token);
 		}
 		return Collections.unmodifiableList(objects);
 	}
