@@ -1,18 +1,18 @@
 package io.zig.data.test
 
 import org.scalatest.FunSuite
-import io.zig.data.Convert
+import io.zig.data.edn.EDN
+import io.zig.data.fressian.Fressian;
 
 class ConversionSuite extends FunSuite {
 
   def roundTrip(s: String) {
-    val bytes = Convert.ednToFressian(s)
-    expectResult (s) { Convert.fressianToEdn(bytes) }
-  }
-
-  def roundTrip(s: String, alt: String) {
-    val bytes = Convert.ednToFressian(s)
-    expectResult (alt) { Convert.fressianToEdn(bytes) }
+    expectResult (s) {
+      val obj = EDN.toObject(s)
+      val bytes = Fressian.toBytes(obj)
+      val newObj = Fressian.toObject(bytes)
+      EDN.toFormat(newObj)
+    }
   }
 
   test ("can convert integers") {
@@ -122,7 +122,7 @@ class ConversionSuite extends FunSuite {
     //roundTrip ("""#"[a-z0-9]+"""")
     pending
   }
-  
+
   test ("can convert a sequence of un-enclosed values") {
     roundTrip("1 2")
     roundTrip("1 2 3")
