@@ -118,7 +118,8 @@ final class EDNConverter implements IText {
 				.put(Object[].class, vectorPrintFn)
 				.put(List.class, listPrintFn)
 				.put(Collection.class, collectionPrintFn)
-				.put(Pattern.class, regexPrintFn).put(URI.class, uriPrintFn)
+				.put(URI.class, uriPrintFn)
+				.put(Pattern.class, regexPrintFn)
 				.build();
 	}
 

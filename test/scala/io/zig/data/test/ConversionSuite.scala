@@ -3,6 +3,7 @@ package io.zig.data.test
 import org.scalatest.FunSuite
 import io.zig.data.edn.EDN
 import io.zig.data.fressian.Fressian;
+import java.nio.charset.Charset;
 
 class ConversionSuite extends FunSuite {
 
@@ -99,6 +100,8 @@ class ConversionSuite extends FunSuite {
   test ("can convert characters") {
     roundTrip ("""\a""")
     roundTrip ("""\A""")
+    roundTrip ("""\λ""")
+    roundTrip ("""\€""")
     // \n, \r, \t are character literals and are not escaped.
     roundTrip ("""\newline""")
     roundTrip ("""\return""")
@@ -114,6 +117,8 @@ class ConversionSuite extends FunSuite {
   test ("can convert string") {
     roundTrip ("\"\"")
     roundTrip (""""this-is-a-string"""")
+    roundTrip ("\"λ\"")
+    roundTrip ("\"\u03BB\"")
   }
 
   test ("can convert nil") {
