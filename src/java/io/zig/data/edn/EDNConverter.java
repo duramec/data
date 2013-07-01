@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Collection;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import us.bpsm.edn.Tag;
 import us.bpsm.edn.parser.CollectionBuilder;
@@ -23,13 +24,26 @@ import us.bpsm.edn.protocols.Protocol;
 
 final class EDNConverter implements IText {
 
+	/**
+	 * Method turns a CharSequence into a composite Object representing EDN data
+	 * structures.
+	 * 
+	 * If the input representation is unenclosed in an EDN Map, Set, List,
+	 * Vector, etc., place all of the sequence items in a special Collection
+	 * type which is very low in the Class hierarchy and should play nice with
+	 * Printers and Parsers.
+	 */
 	@Override
 	public Object toObject(CharSequence s) throws Exception {
 		Parseable edn = newParseable(s);
 		Parser parser = Parsers.newParser(config);
 		Object next = parser.nextValue(edn);
-		// size set to 1 because most things will not need a resize
-		ArrayList<Object> objects = new ArrayList<Object>(1); 
+		/**
+		 * Size set to 1 because most EDN will be be wrapped and will never need
+		 * a resize. Do not create a bunch of intermediate garbage in memory
+		 * just for the special case of an unenclosed sequence.
+		 */
+		ArrayList<Object> objects = new ArrayList<Object>(1);
 		while (next != Parser.END_OF_INPUT) {
 			objects.add(next);
 			next = parser.nextValue(edn);
@@ -81,6 +95,15 @@ final class EDNConverter implements IText {
 		}
 	};
 
+	static final Printer.Fn<Pattern> regexPrintFn = new Printer.Fn<Pattern>() {
+		@Override
+		public void eval(Pattern self, Printer writer) {
+			writer.append("#regex\"");
+			writer.append(self.pattern());
+			writer.append("\"");
+		}
+	};
+
 	static final Printer.Fn<Collection<?>> collectionPrintFn = new Printer.Fn<Collection<?>>() {
 		@Override
 		public void eval(Collection<?> self, Printer writer) {
@@ -95,12 +118,15 @@ final class EDNConverter implements IText {
 				.put(Object[].class, vectorPrintFn)
 				.put(List.class, listPrintFn)
 				.put(Collection.class, collectionPrintFn)
-				.put(URI.class, uriPrintFn).build();
+				.put(Pattern.class, regexPrintFn).put(URI.class, uriPrintFn)
+				.build();
 	}
 
 	static final Protocol<Fn<?>> protocol = createPrinterProtocol();
 
 	static final Tag uriTag = Tag.newTag("uri");
+
+	static final Tag regexTag = Tag.newTag("regex");
 
 	static final CollectionBuilder.Factory createVectorFactory() {
 		return new CollectionBuilder.Factory() {
@@ -126,8 +152,15 @@ final class EDNConverter implements IText {
 		}
 	};
 
+	static final TagHandler regexTagHandler = new TagHandler() {
+		public Object transform(Tag tag, Object value) {
+			return Pattern.compile((String) value);
+		}
+	};
+
 	static final Parser.Config config = Parsers.newParserConfigBuilder()
 			.setVectorFactory(createVectorFactory())
-			.putTagHandler(uriTag, uriTagHandler).build();
+			.putTagHandler(uriTag, uriTagHandler)
+			.putTagHandler(regexTag, regexTagHandler).build();
 
 }

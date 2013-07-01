@@ -6,12 +6,22 @@ import io.zig.data.fressian.Fressian;
 
 class ConversionSuite extends FunSuite {
 
+  def backAndForth(s: String): String = {
+    val obj = EDN.toObject(s)
+    val bytes = Fressian.toBytes(obj)
+    val newObj = Fressian.toObject(bytes)
+    EDN.toFormat(newObj)
+  }
+
   def roundTrip(s: String) {
     expectResult (s) {
-      val obj = EDN.toObject(s)
-      val bytes = Fressian.toBytes(obj)
-      val newObj = Fressian.toObject(bytes)
-      EDN.toFormat(newObj)
+      backAndForth(s)
+    }
+  }
+
+  def roundTripAlternate(s: String, alt: String) {
+    expectResult (alt) {
+      backAndForth(s)
     }
   }
 
@@ -119,14 +129,17 @@ class ConversionSuite extends FunSuite {
   }
 
   test ("can convert Regex") {
-    //roundTrip ("""#"[a-z0-9]+"""")
-    pending
+    roundTrip ("""#regex"[a-z0-9]+"""")
+    val s = """#regex"[a-z0-9\\\\]+""""
+    val sStripped = s.replace("""\\""", """\""");
+    roundTripAlternate (s, sStripped)
   }
 
   test ("can convert a sequence of un-enclosed values") {
     roundTrip("1 2")
     roundTrip("1 2 3")
     roundTrip("1 2 3 nil")
+    roundTrip("{:a 1}[b 2](c 3)#{d}1 2 3")
   }
 
 }

@@ -38,9 +38,20 @@ final class FressianConverter implements IBinary {
 		return baos.toByteArray();
 	}
 
+	/**
+	 * Method turns a byte array of Fressian objects into EDN.
+	 * 
+	 * If the input is an unenclosed sequence, return it in an unmodifiable
+	 * Collection which is very low in the Class hierarchy and should play nice
+	 * with Printers and Parsers.
+	 */
 	@Override
 	public Object toObject(byte[] bytes) throws IOException {
-		// set size as 1 because most things will be enclosed in 1 object
+		/**
+		 * Size set to 1 because most objects will be be wrapped and will never
+		 * need a resize. Do not create a bunch of intermediate garbage in
+		 * memory just for the special case of an unenclosed sequence.
+		 */
 		ArrayList<Object> objects = new ArrayList<Object>(1);
 		ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
 		PushbackInputStream pb = new PushbackInputStream(bais);
@@ -59,7 +70,6 @@ final class FressianConverter implements IBinary {
 		if (objects.size() == 1) {
 			return objects.get(0);
 		} else {
-			// unenclosed sequence
 			objects.trimToSize();
 			return Collections.unmodifiableCollection(objects);
 		}
